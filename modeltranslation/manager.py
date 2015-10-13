@@ -16,9 +16,13 @@ try:
 except ImportError:
     NEW_META_API = True
 
-from django.db.models.sql.where import Constraint
 from django.utils.six import moves
 from django.utils.tree import Node
+try:
+    from django.db.models.sql.where import Constraint
+    BEFORE_19 = False
+except ImportError:
+    BEFORE_19 = True
 try:
     from django.db.models.lookups import Lookup
     from django.db.models.sql.datastructures import Col
@@ -256,7 +260,7 @@ class MultilingualQuerySet(models.query.QuerySet):
         """
         Rewrite field names inside WHERE tree.
         """
-        if not NEW_LOOKUPS and isinstance(q, tuple) and isinstance(q[0], Constraint):
+        if not NEW_LOOKUPS and isinstance(q, tuple) and (BEFORE_19 and isinstance(q[0], Constraint)):
             c = q[0]
             if c.field is None:
                 c.field = get_field_by_colum_name(self.model, c.col)
